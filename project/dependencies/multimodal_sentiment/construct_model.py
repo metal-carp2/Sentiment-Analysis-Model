@@ -4,7 +4,7 @@ import tensorflow as tf
 
 def build_model(mean, variance, classes):
     return tf.keras.Sequential([
-        tf.keras.layers.Input(shape=(40,), name='mean_mfcc'),
+        tf.keras.layers.Input(shape=(len(mean),), name='mean_mfcc'),
         tf.keras.layers.Normalization(mean=mean, variance=variance, name='training_normalization'),
         tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dropout(0.3),
