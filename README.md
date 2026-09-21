@@ -21,6 +21,26 @@ uv pip install --python .venv\Scripts\python.exe .
 .\.venv\Scripts\emotion-session.exe record --name first-session --seconds 60
 ```
 
+## Interactive menu
+
+Run `emotion-session` with no arguments for a menu covering the common tasks, so nothing has to be remembered:
+
+```sh
+emotion-session
+```
+
+```
+  1) Record a new session
+  2) Read a past session report
+  3) Analyze a recording
+  4) Choose a model
+  q) Quit
+```
+
+The header shows the recordings folder, how many sessions are stored, and which model is selected. Option 3 accepts either a past session's `audio.wav` or any WAV on disk, so one recording can be re-scored after option 4 points somewhere else. Option 4 takes a SavedModel bundle directory or a `module:factory` backend; a backend is imported and called, so only select one you trust.
+
+The menu runs the same commands documented below, so session names, duration limits and stored files are identical either way. Use `emotion-session menu --sessions-dir PATH` for a different folder. Non-interactive shells still require an explicit command.
+
 ## Record and review sessions
 
 ```sh

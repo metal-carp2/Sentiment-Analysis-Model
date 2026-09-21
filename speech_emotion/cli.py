@@ -36,7 +36,7 @@ def safe_name(name):
 
 def main(argv=None):
     parser=argparse.ArgumentParser(prog='emotion-session',description='Record up to a minute and view an experimental emotion timeline.')
-    commands=parser.add_subparsers(dest='command',required=True)
+    commands=parser.add_subparsers(dest='command')
     for action in ('record','analyze'):
         p=commands.add_parser(action)
         if action=='record':
@@ -52,7 +52,14 @@ def main(argv=None):
     commands.add_parser('devices')
     p=commands.add_parser('list');p.add_argument('--sessions-dir',type=Path,default=Path('emotion-sessions'))
     p=commands.add_parser('report');p.add_argument('name');p.add_argument('--sessions-dir',type=Path,default=Path('emotion-sessions'))
+    p=commands.add_parser('menu');p.add_argument('--sessions-dir',type=Path,default=Path('emotion-sessions'))
     args=parser.parse_args(argv)
+    if args.command is None:
+        if not sys.stdin.isatty():parser.error('Choose a command.')
+        args.command='menu';args.sessions_dir=Path('emotion-sessions')
+    if args.command=='menu':
+        from .menu import run
+        return run(args.sessions_dir)
     session=None
     created=False
     try:
