@@ -6,7 +6,7 @@ import random
 import dependencies.parameters as param
 from datasets import DownloadConfig
 import numpy as np
-from model_data import serialized_emotions
+from dependencies.multimodal_sentiment.model_data import serialized_emotions
 import matplotlib.pyplot as plt
 from keras.models import load_model, model_from_json  # Import the load_model function
 from keras.optimizers import Adam
@@ -51,10 +51,11 @@ def pad_2d_array(array, pad_value=0):
 
 #model = load_model("./project/dependencies/multimodal_sentiment/model")
 # Load the IEMOCAP Emotion Recognition dataset
-model_version = "2.3"
 dataset_version = "3.0"
 
-model = load_model(f"./dependencies/multimodal_sentiment/models/v{model_version}")
+from pathlib import Path
+MODEL_PATH = Path(__file__).resolve().parent / "model"
+model = load_model(MODEL_PATH)
 model.compile(optimizer=Adam(0.0025), loss='categorical_crossentropy', metrics=['accuracy'])
 model.summary()
 download_config = DownloadConfig(cache_dir="./cache_dir")

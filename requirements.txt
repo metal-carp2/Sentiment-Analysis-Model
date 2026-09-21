@@ -1,0 +1,6 @@
+# Tested with Python 3.11 on Windows x86-64.
+numpy==1.26.4
+librosa==0.10.2.post1
+soundfile==0.13.1
+sounddevice==0.5.2
+tensorflow==2.15.1
