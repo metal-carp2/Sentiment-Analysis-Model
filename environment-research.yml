@@ -1,0 +1,40 @@
+name: speech-emotion-research
+
+# Everything in environment.yml, plus the dependencies of the recovered
+# Whisper/IEMOCAP utilities under project/. Roughly 5 GB installed, mostly
+# torch, so use environment.yml instead unless you are running those scripts.
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python=3.11
+  - pip
+
+  - portaudio
+  - libsndfile
+  - ffmpeg  # whisper shells out to the ffmpeg binary, so it must be on PATH
+
+  - pip:
+      - numpy==1.26.4
+      - librosa==0.10.2.post1
+      - soundfile==0.13.1
+      - sounddevice==0.5.2
+      - tensorflow==2.15.1
+      - scikit-learn==1.9.1
+
+      - torch
+      - openai-whisper
+      - noisereduce
+      - sentence-transformers
+      - nltk
+      - datasets
+      - pandas
+      - matplotlib
+      - scipy
+      - joblib
+      - pyaudio
+      # The webrtcvad source build needs a C compiler; this fork ships wheels.
+      - webrtcvad-wheels
+
+      - -e .

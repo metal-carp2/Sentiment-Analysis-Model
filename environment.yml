@@ -1,0 +1,25 @@
+name: speech-emotion
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python=3.11
+  - pip
+
+  # Native audio backends. Windows and macOS wheels bundle their own copies,
+  # but on Linux sounddevice and soundfile need these present or they fail at
+  # import with an opaque library-not-found error.
+  - portaudio
+  - libsndfile
+
+  # TensorFlow has no reliable conda-forge build on Windows, so the Python
+  # packages are installed by pip. Versions match requirements.txt.
+  - pip:
+      - numpy==1.26.4
+      - librosa==0.10.2.post1
+      - soundfile==0.13.1
+      - sounddevice==0.5.2
+      - tensorflow==2.15.1
+      - scikit-learn==1.9.1
+      - -e .

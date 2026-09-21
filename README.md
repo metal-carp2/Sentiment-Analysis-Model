@@ -13,6 +13,20 @@ emotion-session --help
 
 The model is included; no training or separate model download is needed. This installs from GitHub, not PyPI. Tested on Windows with Python 3.11; macOS/Linux are not yet verified. Linux may require the system PortAudio package for microphone capture. TensorFlow installation is large and availability depends on platform/CPU.
 
+### Conda
+
+From a checkout, `environment.yml` pins Python 3.11, installs the native audio libraries that sounddevice and soundfile need, and installs this package:
+
+```sh
+conda env create -f environment.yml
+conda activate speech-emotion
+emotion-session --help
+```
+
+`environment-research.yml` builds a separate `speech-emotion-research` environment that additionally covers the recovered utilities under `project/`. It pulls in torch, Whisper and ffmpeg, so prefer `environment.yml` unless you are running those scripts.
+
+**Do not install `project/requirements.txt`.** It is a stale environment capture pinning TensorFlow 2.10.1, Keras 2.10.0 and protobuf 3.19.6. TensorFlow 2.15.1 requires `protobuf>=3.20.3`, so installing that file downgrades TensorFlow and breaks an otherwise working environment.
+
 For your existing checkout and virtual environment:
 
 ```powershell
