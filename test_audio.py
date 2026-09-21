@@ -29,22 +29,15 @@ def analyze(path):
 
 
 def check_model(y):
-    import librosa
-    import numpy as np
-    import tensorflow as tf
-    model = tf.keras.models.load_model(MODEL)
-    # Reproduce the retained compiler's mean-over-coefficients sequence.
-    # Training-time scaler was not recovered: this is ONLY a forward-pass check.
-    sequence = librosa.feature.mfcc(y=librosa.util.normalize(y), sr=16000, n_mfcc=40).mean(axis=0)
-    output = model(sequence[np.newaxis, :, np.newaxis], training=False).numpy()
-    if not np.isfinite(output).all():
-        raise ValueError('Model produced invalid values.')
+    from emotion_model import Predictor
+    predictor = Predictor()
+    result = predictor.predict(y)
     return {
-        'path': str(MODEL), 'input_shape': list(model.input_shape),
-        'output_shape': list(output.shape),
-        'forward_pass_finite': True,
-        'optimizer_steps': int(model.optimizer.iterations.numpy()) if model.optimizer else None,
-        'note': 'Load/forward-pass test only; no emotion prediction. Training scaler and verified label mapping are missing.',
+        'path': str(MODEL), 'input_shape': list(predictor.model.input_shape),
+        'output_shape': [1, len(predictor.labels)], 'forward_pass_finite': True,
+        'training_status': predictor.metadata['status'],
+        'note': 'Experimental emotion estimate; scores are not calibrated confidence.',
+        **result,
     }
 
 

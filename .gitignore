@@ -164,3 +164,6 @@ cython_debug/
 
 # Local test recordings
 recordings/
+
+# Retraining experiments
+work/

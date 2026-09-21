@@ -1,76 +1,90 @@
-# Speech Emotion Recognition
+# Live Speech Emotion Recognition
 
-Record a short audio clip or test a supplied WAV file. The repository contains one saved model, one model constructor, and one dataset compiler.
+A trained experimental audio emotion model using the supplied `v2.1.csv`, with live microphone inference and WAV replay. The repository keeps one model and one model constructor.
 
-## Quick start (Windows PowerShell, Python 3.11)
+## Run live predictions
 
-From the repository root:
+In PowerShell, from the repository root:
 
 ```powershell
-py -3.11 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+git pull
+uv pip install --python .venv\Scripts\python.exe -r requirements.txt
+.\.venv\Scripts\python.exe live_emotion.py
+```
+
+For a fresh checkout, first create the environment with `uv venv --python 3.11 .venv` (or `py -3.11 -m venv .venv`).
+
+Speak after **Microphone listening** appears. The program analyzes the latest three seconds of audio and updates about once per second, depending on processing speed. It prints an emotion estimate and model scores in the terminal. Ctrl+C stops. Quiet windows are skipped. Live mode captures audio in memory; it does not save recordings or transcribe speech.
+
+To choose a microphone or stop after a fixed duration:
+
+```powershell
+.\.venv\Scripts\python.exe live_emotion.py --list-devices
+.\.venv\Scripts\python.exe live_emotion.py --device 1 --seconds 20
+```
+
+The device index depends on your computer. Adjust `--silence-threshold` if a quiet microphone is consistently skipped (default RMS threshold: 0.001).
+
+## Test without a microphone
+
+```powershell
+.\.venv\Scripts\python.exe live_emotion.py --wav samples/03-01-05-01-01-01-01.wav
 .\.venv\Scripts\python.exe test_audio.py --wav samples/03-01-01-01-01-01-01.wav --check-model
 ```
 
-If using `uv`, create the environment with `uv venv --python 3.11 .venv` instead. The local development checkout already has a tested environment installed.
+The first command replays overlapping audio windows through the same predictor used live; the second evaluates the whole clip. Three real neutral/happy/angry clips are included; see [their attribution and separate audio license](samples/README.md).
 
-The command prints duration, audio level, MFCC dimensions, and whether the saved model loads and produces finite output. The first run can take longer while libraries initialize. TensorFlow may print deprecation notices when loading the SavedModel.
-
-**This is an input/model-loading test, not an emotion prediction.** Inspection found zero optimizer steps and unchanged batch-normalization statistics in the retained checkpoint, strongly suggesting it is an initialized, untrained model. The training scaler and verified output-label mapping are also absent. Train and save these artifacts together, or supply a verified trained checkpoint, before interpreting model outputs as emotions.
-
-## Record your microphone
+To save a five-second recording for replay:
 
 ```powershell
 .\.venv\Scripts\python.exe test_audio.py --record 5
+.\.venv\Scripts\python.exe live_emotion.py --wav recordings/test.wav
 ```
 
-This records five seconds, saves a proper WAV to `recordings/test.wav`, and analyzes it. It does not transcribe or predict emotions. Recording begins only when you run this command. Choose a different filename for subsequent recordings; existing recordings are never overwritten:
+Choose a different `--output` when recording again; existing files are not overwritten.
+
+## What was trained
+
+The supplied CSV has 1,024 examples. Two `other` examples were excluded, leaving eight labels: angry, excited, fear, frustrated, happy, neutral, sad, and surprise. Training used 721 examples, validation 146, and held-out testing 155. Normalized transcript groups are disjoint across these splits. Speaker identities are absent, so this is **not a speaker-independent evaluation**.
+
+The model takes 40 MFCC means and uses a small dense neural network suited to that fixed-size input. It replaces the untrained sequence-model placeholder. Audio is resampled to 16 kHz, peak-normalized, and converted to mean MFCCs. Training-only feature normalization is embedded in the saved model. The preprocessing was reconstructed from the recovered `extract_dataset2`; original CSV-generation provenance is not fully documented. Live windows also differ from the complete utterances in the training CSV.
+
+Training stopped after 31 epochs, restoring the best validation-loss weights. Test results:
+
+| Metric | Result |
+| --- | --- |
+| Accuracy | 32.3% |
+| Majority-label baseline accuracy | 26.5% |
+| Balanced accuracy | 24.6% |
+| Macro F1 | 22.9% |
+
+**This is a functioning prototype, not a reliable emotion detector.** Fear and surprise had zero recall in the small held-out set. Scores are not calibrated confidence, and microphone/domain differences may reduce performance further. File replay success does not establish live accuracy. Model scores were not used to choose the data split.
+
+Full evaluation, label order, preprocessing settings, source-data hash, and optimizer step count are saved in `project/dependencies/multimodal_sentiment/model/metadata.json` alongside the model. No separate scaler file is needed.
+
+## Code and retraining
+
+- `live_emotion.py`: bounded microphone buffer, quiet-window gating, and WAV replay.
+- `emotion_model.py`: shared preprocessing and model loading/prediction.
+- `test_audio.py`: recording and whole-file testing.
+- `project/dependencies/multimodal_sentiment/construct_model.py`: single model definition.
+- `project/dependencies/multimodal_sentiment/train.py`: reproducible training/evaluation on the supplied CSV.
+- `project/dependencies/multimodal_sentiment/model/`: single trained model and metadata.
+- `project/dependencies/multimodal_sentiment/compile_dataset.py`: optional original IEMOCAP/text compiler, now using compatible 40-MFCC means; not needed to run or retrain from the supplied CSV. It still requires additional research dependencies.
+- `project/main.py` and the other recovered utilities: original Whisper/transcription experiments; the supported live prediction entry point is `live_emotion.py`.
+
+To reproduce training without overwriting the shipped model:
 
 ```powershell
-.\.venv\Scripts\python.exe test_audio.py --record 5 --output recordings/second.wav
-.\.venv\Scripts\python.exe test_audio.py --wav recordings/second.wav --check-model
+.\.venv\Scripts\python.exe project/dependencies/multimodal_sentiment/train.py --output work/retrained-model
 ```
 
-## Sample speech
+The output must not already exist. Raw dataset archives were not used for this training run; the supplied prepared CSV was used directly. Text embeddings are not inputs to this audio-only model.
 
-Three real RAVDESS clips are included under `samples/`:
-
-| Filename | Intended acted emotion |
-| --- | --- |
-| `03-01-01-01-01-01-01.wav` | Neutral |
-| `03-01-03-01-01-01-01.wav` | Happy |
-| `03-01-05-01-01-01-01.wav` | Angry |
-
-See [sample attribution and license](samples/README.md). These are noncommercial, CC BY-NC-SA 4.0 audio samples; the code license does not replace their license. The clips test the input pipeline, not classification accuracy.
-
-## Code layout
-
-- `test_audio.py`: independent WAV analysis and microphone test CLI; no Whisper downloads.
-- `project/dependencies/multimodal_sentiment/model/`: the single TensorFlow SavedModel. Its metadata and variable files form one model and must stay together.
-- `project/dependencies/multimodal_sentiment/construct_model.py`: the single CNN/LSTM model builder. Importing it creates no model; running it prints a new model's summary without overwriting the saved model.
-- `project/dependencies/multimodal_sentiment/compile_dataset.py`: the single IEMOCAP dataset compiler.
-- `project/dependencies/multimodal_sentiment/train.py`: research training script, currently requiring further setup described below.
-- `project/main.py`: original continuous recording, Whisper transcription, and plotting workflow.
-- `project/dependencies/`: original audio analysis and text feature utilities.
-- `model.py`: standalone dataset feature extraction for RAVDESS, CREMA-D, TESS, and SAVEE; not another saved classifier.
-
-## Training and continuous transcription limitations
-
-The root requirements support the new test command. The original research scripts need additional dependencies beyond these (including Whisper, PyTorch, WebRTC VAD, PyAudio, noisereduce, matplotlib, pandas, datasets, sentence-transformers, and NLTK). `project/requirements.txt` is an incomplete older environment snapshot, not the installation path for the tested CLI.
-
-The original training script expects `datasets/v3.0.csv`, while the recovered data is `v2.1.csv`; they must not be treated as interchangeable. It also needs preprocessing/label persistence and saving of trained weights before it can produce a reusable classifier. Do not run a long training job until those gaps are addressed. The continuous transcription program expects to run from the `project` directory and still does not call the emotion classifier.
-
-## Verification
+## Tests
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-Validated with Python 3.11, TensorFlow 2.15.1, and librosa 0.10.2.post1 on Windows:
-
-- All three real speech clips produced finite 40-coefficient MFCC features.
-- The retained saved model loaded and produced a finite output of shape `(1, 8)` for a sample.
-- Five automated tests passed, covering samples, stereo resampling, short/empty audio rejection, invalid recording duration, and protection against overwriting recordings.
-- Microphone devices were enumerated; live microphone recording was not performed during validation.
-
-No emotion accuracy claims have been verified.
+Validation covers audio input, silence gating, group-disjoint splits, model loading with embedded normalization, and finite prediction scores. WAV replay is tested with real speech; a physical microphone recording was not performed during development.

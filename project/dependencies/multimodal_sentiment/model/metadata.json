@@ -1,0 +1,180 @@
+{
+  "labels": [
+    "angry",
+    "excited",
+    "fear",
+    "frustrated",
+    "happy",
+    "neutral",
+    "sad",
+    "surprise"
+  ],
+  "sample_rate": 16000,
+  "n_mfcc": 40,
+  "aggregation": "mean_over_time",
+  "audio_normalization": "peak",
+  "feature_scaling": "embedded training-only Normalization layer",
+  "status": "experimental_trained",
+  "training_data": "supplied v2.1.csv; other excluded",
+  "preprocessing_note": "Reconstructed from recovered extract_dataset2. Original feature-generation provenance is not fully documented.",
+  "evaluation": {
+    "accuracy": 0.3225806451612903,
+    "balanced_accuracy": 0.24646851431439323,
+    "majority_baseline_accuracy": 0.2645161290322581,
+    "classification_report": {
+      "angry": {
+        "precision": 0.13793103448275862,
+        "recall": 0.36363636363636365,
+        "f1-score": 0.2,
+        "support": 11.0
+      },
+      "excited": {
+        "precision": 0.25,
+        "recall": 0.3103448275862069,
+        "f1-score": 0.27692307692307694,
+        "support": 29.0
+      },
+      "fear": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 4.0
+      },
+      "frustrated": {
+        "precision": 0.3333333333333333,
+        "recall": 0.2926829268292683,
+        "f1-score": 0.3116883116883117,
+        "support": 41.0
+      },
+      "happy": {
+        "precision": 1.0,
+        "recall": 0.07692307692307693,
+        "f1-score": 0.14285714285714285,
+        "support": 13.0
+      },
+      "neutral": {
+        "precision": 0.45454545454545453,
+        "recall": 0.3448275862068966,
+        "f1-score": 0.39215686274509803,
+        "support": 29.0
+      },
+      "sad": {
+        "precision": 0.45161290322580644,
+        "recall": 0.5833333333333334,
+        "f1-score": 0.509090909090909,
+        "support": 24.0
+      },
+      "surprise": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 4.0
+      },
+      "accuracy": 0.3225806451612903,
+      "macro avg": {
+        "precision": 0.3284278406984191,
+        "recall": 0.24646851431439323,
+        "f1-score": 0.22908953791306733,
+        "support": 155.0
+      },
+      "weighted avg": {
+        "precision": 0.38357700584009385,
+        "recall": 0.3225806451612903,
+        "f1-score": 0.3126313787414357,
+        "support": 155.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        4,
+        2,
+        0,
+        3,
+        0,
+        1,
+        1,
+        0
+      ],
+      [
+        9,
+        9,
+        0,
+        7,
+        0,
+        3,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        3,
+        0
+      ],
+      [
+        10,
+        12,
+        0,
+        12,
+        0,
+        4,
+        3,
+        0
+      ],
+      [
+        3,
+        4,
+        0,
+        2,
+        1,
+        1,
+        2,
+        0
+      ],
+      [
+        2,
+        6,
+        0,
+        5,
+        0,
+        10,
+        6,
+        0
+      ],
+      [
+        1,
+        1,
+        0,
+        6,
+        0,
+        2,
+        14,
+        0
+      ],
+      [
+        0,
+        2,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0
+      ]
+    ],
+    "split_counts": {
+      "train": 721,
+      "validation": 146,
+      "test": 155
+    },
+    "split_seed": 44,
+    "split_method": "Disjoint normalized transcript groups. Speaker IDs are unavailable; this is NOT a speaker-independent evaluation.",
+    "epochs": 31,
+    "optimizer_steps": 713,
+    "data_sha256": "8fc9019abd31e37c1aefb1c41808fac0eb21ff205eae644feb6da7ce1c25859f"
+  }
+}

@@ -46,7 +46,7 @@ def compile_training_data():
         # Extract audio features for each row in the batch
         array = audio_data[i]
         text = transcription_data[i]
-        mfcc, text_embedding, vader = extract_dataset3(array, text)
+        mfcc, text_embedding, vader = extract_dataset2(array, text)
         appended_labels = [dataset[emotion][i] for emotion in serialized_emotions]
 
         df.loc[len(df)] = [text, mfcc.tolist(), text_embedding.tolist(), vader, appended_labels, major_emotion[i]]
