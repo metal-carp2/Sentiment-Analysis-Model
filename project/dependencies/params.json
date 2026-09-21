@@ -1,0 +1,11 @@
+{
+    "CHUNK_DURATION" : 0.03,
+    "SAMPLE_RATE" : 16000, 
+    "CHANNELS" : 1,
+    "REF" : 0.00034,
+    "INACTIVITY_TIMEOUT" : 0.2,
+    "FMIN" : 50,
+    "FMAX" : 900,
+    "LANGUAGE": "en",
+    "N_MFCC": 40
+}
