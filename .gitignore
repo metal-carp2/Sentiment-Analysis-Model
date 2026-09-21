@@ -167,3 +167,6 @@ recordings/
 
 # Retraining experiments
 work/
+
+# User session recordings and reports
+emotion-sessions/

@@ -1,47 +1,100 @@
-# Live Speech Emotion Recognition
+# Speech Emotion Sessions
 
-A trained experimental audio emotion model using the supplied `v2.1.csv`, with live microphone inference and WAV replay. The repository keeps one model and one model constructor.
+An installable terminal application for separate recording sessions of up to one minute, with an emotion timeline and end-of-session report. Processing runs locally. The bundled model is experimental: held-out accuracy is **32.3%**, so reports are estimates, not reliable measurements of feelings.
 
-## Run live predictions
+## Install
 
-In PowerShell, from the repository root:
+Python **3.10 or 3.11** is required (3.11 recommended). From a terminal with Python and Git installed:
+
+```sh
+python -m pip install "git+https://github.com/metal-carp2/Sentiment-Analysis-Model.git"
+emotion-session --help
+```
+
+The model is included; no training or separate model download is needed. This installs from GitHub, not PyPI. Tested on Windows with Python 3.11; macOS/Linux are not yet verified. Linux may require the system PortAudio package for microphone capture. TensorFlow installation is large and availability depends on platform/CPU.
+
+For your existing checkout and virtual environment:
 
 ```powershell
 git pull
-uv pip install --python .venv\Scripts\python.exe -r requirements.txt
-.\.venv\Scripts\python.exe live_emotion.py
+uv pip install --python .venv\Scripts\python.exe .
+.\.venv\Scripts\emotion-session.exe record --name first-session --seconds 60
 ```
 
-For a fresh checkout, first create the environment with `uv venv --python 3.11 .venv` (or `py -3.11 -m venv .venv`).
+## Record and review sessions
 
-Speak after **Microphone listening** appears. The program analyzes the latest three seconds of audio and updates about once per second, depending on processing speed. It prints an emotion estimate and model scores in the terminal. Ctrl+C stops. Quiet windows are skipped. Live mode captures audio in memory; it does not save recordings or transcribe speech.
-
-To choose a microphone or stop after a fixed duration:
-
-```powershell
-.\.venv\Scripts\python.exe live_emotion.py --list-devices
-.\.venv\Scripts\python.exe live_emotion.py --device 1 --seconds 20
+```sh
+emotion-session record --name morning --seconds 60
+emotion-session record --name afternoon --seconds 30
+emotion-session list
+emotion-session report morning
 ```
 
-The device index depends on your computer. Adjust `--silence-threshold` if a quiet microphone is consistently skipped (default RMS threshold: 0.001).
+Wait for **Recording. Speak now**. Ctrl+C ends early and analyzes what was captured. Duration is limited to 1-60 seconds. Each name must be unique; omitting `--name` generates one. The microphone is closed before analysis starts.
 
-## Test without a microphone
+Each session creates a directory under `emotion-sessions/` in the current working directory:
 
-```powershell
-.\.venv\Scripts\python.exe live_emotion.py --wav samples/03-01-05-01-01-01-01.wav
-.\.venv\Scripts\python.exe test_audio.py --wav samples/03-01-01-01-01-01-01.wav --check-model
+- `audio.wav`: your recording.
+- `report.txt`: readable timeline and summary.
+- `report.json`: structured results, model metadata, and scores.
+
+Use `--sessions-dir PATH` on any session command to choose a shared location. Audio and reports stay local and may contain private information; they are ignored by Git by default.
+
+Reports analyze non-overlapping three-second windows, include any usable final partial window, and report quiet periods separately. Emotion percentages are the share of **analyzed time assigned to each label**, not the probability that you felt that emotion. Loud background sounds can exceed the simple RMS gate. Scores are not calibrated confidence.
+
+```sh
+emotion-session devices
+emotion-session record --seconds 30 --device 1
+emotion-session analyze samples/03-01-05-01-01-01-01.wav --name sample
 ```
 
-The first command replays overlapping audio windows through the same predictor used live; the second evaluates the whole clip. Three real neutral/happy/angry clips are included; see [their attribution and separate audio license](samples/README.md).
+Device indexes depend on your computer. `analyze` accepts audio up to 60 seconds. Sample files are in the Git checkout and have a [separate audio license](samples/README.md). Use `--window 5` to adjust report resolution or `--silence-threshold 0.0005` for quiet recordings.
 
-To save a five-second recording for replay:
+## Replace the model
 
-```powershell
-.\.venv\Scripts\python.exe test_audio.py --record 5
-.\.venv\Scripts\python.exe live_emotion.py --wav recordings/test.wav
+Recording and reporting depend only on a predictor interface. They do not contain model architecture or feature extraction logic.
+
+**Same 40-MFCC feature pipeline:** supply another TensorFlow SavedModel bundle with `metadata.json`, unique `labels`, `sample_rate: 16000`, `n_mfcc: 40`, `aggregation: "mean_over_time"`, and `audio_normalization: "peak"`. It must accept `(batch, 40)` MFCC means, include its own training normalization, and return one probability per label. Use the bundled metadata as a reference.
+
+```sh
+emotion-session record --seconds 60 --model /path/to/model-bundle
 ```
 
-Choose a different `--output` when recording again; existing files are not overwritten.
+**Different features, labels, or framework:** provide an installed Python module with a factory, then select it explicitly:
+
+```sh
+emotion-session record --seconds 60 --backend my_emotion_backend:create --model /path/to/artifacts
+```
+
+The factory receives a `Path` (or `None`) and returns an object with:
+
+```python
+class Predictor:
+    labels = ["neutral", "happy", "sad"]
+    metadata = {"model_id": "my-model-v1"}  # JSON-serializable
+
+    def predict(self, audio, sample_rate):
+        # audio is a mono float32 NumPy array; perform your own resampling,
+        # feature extraction, normalization, and model inference here.
+        return {"scores": {"neutral": 0.7, "happy": 0.2, "sad": 0.1}}
+
+def create(model_path):
+    return Predictor()  # Load your artifacts here.
+```
+
+This is an interface example, not a trained classifier. Scores must be finite values in [0, 1], sum to one, and match the declared labels. Only use backend modules you trust: selecting one executes Python code. Audio+text models can transcribe inside their backend. No changes to session storage or reports are required. Incompatible preprocessing metadata is rejected by the default backend.
+
+For training, `construct_model.py` defines the model and `train.py` handles the supplied CSV. Saved normalization, feature extraction, and label order must stay consistent when retraining. Architecture changes alone do not establish improved accuracy; compare on held-out data.
+
+## Development and validation
+
+```sh
+python -m pip install -e .
+python -m pip install -r requirements.txt
+python -m unittest discover -s tests -v
+```
+
+Wheel installation and bundled-model inference were tested outside the source repository. Session tests cover duration limits, no overwrites, early stopping with partial audio, quiet windows, invalid backend scores, and report persistence. Physical microphone capture has not been exercised during automated validation.
 
 ## What was trained
 
@@ -71,7 +124,7 @@ Full evaluation, label order, preprocessing settings, source-data hash, and opti
 - `project/dependencies/multimodal_sentiment/train.py`: reproducible training/evaluation on the supplied CSV.
 - `project/dependencies/multimodal_sentiment/model/`: single trained model and metadata.
 - `project/dependencies/multimodal_sentiment/compile_dataset.py`: optional original IEMOCAP/text compiler, now using compatible 40-MFCC means; not needed to run or retrain from the supplied CSV. It still requires additional research dependencies.
-- `project/main.py` and the other recovered utilities: original Whisper/transcription experiments; the supported live prediction entry point is `live_emotion.py`.
+- `project/main.py` and the other recovered utilities: original Whisper/transcription experiments; `emotion-session record` is the supported session entry point; `live_emotion.py` remains available for continuous estimates.
 
 To reproduce training without overwriting the shipped model:
 

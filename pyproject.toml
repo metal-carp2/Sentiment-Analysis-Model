@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "speech-emotion-sessions"
+version = "0.1.0"
+description = "Local terminal recording sessions and experimental speech emotion reports"
+readme = "README.md"
+requires-python = ">=3.10,<3.12"
+dependencies = ["numpy==1.26.4", "librosa==0.10.2.post1", "soundfile==0.13.1", "sounddevice==0.5.2", "tensorflow==2.15.1"]
+
+[project.scripts]
+emotion-session = "speech_emotion.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["speech_emotion*", "project", "project.dependencies", "project.dependencies.multimodal_sentiment"]
+
+[tool.setuptools.package-data]
+"project.dependencies.multimodal_sentiment" = ["model/*.pb", "model/*.json", "model/variables/*"]
