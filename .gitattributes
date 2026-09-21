@@ -1,2 +1,8 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Model and audio artifacts must never undergo newline conversion.
+*.pb binary
+*.index binary
+*.data-* binary
+*.wav binary
