@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import librosa
 
-MODEL_DIR = Path(__file__).resolve().parents[1]/'project/dependencies/multimodal_sentiment/model'
+MODEL_DIR = Path(__file__).resolve().parent/'model'
 SAMPLE_RATE = 16000
 
 

@@ -14,7 +14,7 @@ dependencies = ["numpy==1.26.4", "librosa==0.10.2.post1", "soundfile==0.13.1", "
 emotion-session = "speech_emotion.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["speech_emotion*", "project", "project.dependencies", "project.dependencies.multimodal_sentiment"]
+include = ["speech_emotion*"]
 
 [tool.setuptools.package-data]
-"project.dependencies.multimodal_sentiment" = ["model/*.pb", "model/*.json", "model/variables/*"]
+"speech_emotion" = ["model/*.pb", "model/*.json", "model/variables/*"]

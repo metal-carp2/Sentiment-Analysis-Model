@@ -113,7 +113,7 @@ Training stopped after 31 epochs, restoring the best validation-loss weights. Te
 
 **This is a functioning prototype, not a reliable emotion detector.** Fear and surprise had zero recall in the small held-out set. Scores are not calibrated confidence, and microphone/domain differences may reduce performance further. File replay success does not establish live accuracy. Model scores were not used to choose the data split.
 
-Full evaluation, label order, preprocessing settings, source-data hash, and optimizer step count are saved in `project/dependencies/multimodal_sentiment/model/metadata.json` alongside the model. No separate scaler file is needed.
+Full evaluation, label order, preprocessing settings, source-data hash, and optimizer step count are saved in `speech_emotion/model/metadata.json` alongside the model. No separate scaler file is needed.
 
 ## Code and retraining
 
@@ -122,7 +122,7 @@ Full evaluation, label order, preprocessing settings, source-data hash, and opti
 - `test_audio.py`: recording and whole-file testing.
 - `project/dependencies/multimodal_sentiment/construct_model.py`: single model definition.
 - `project/dependencies/multimodal_sentiment/train.py`: reproducible training/evaluation on the supplied CSV.
-- `project/dependencies/multimodal_sentiment/model/`: single trained model and metadata.
+- `speech_emotion/model/`: single trained model and metadata, shipped with the package.
 - `project/dependencies/multimodal_sentiment/compile_dataset.py`: optional original IEMOCAP/text compiler, now using compatible 40-MFCC means; not needed to run or retrain from the supplied CSV. It still requires additional research dependencies.
 - `project/main.py` and the other recovered utilities: original Whisper/transcription experiments; `emotion-session record` is the supported session entry point; `live_emotion.py` remains available for continuous estimates.
 
