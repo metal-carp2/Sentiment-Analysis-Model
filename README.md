@@ -128,7 +128,7 @@ python -m pip install -r requirements.txt
 python -m unittest discover -s tests -v
 ```
 
-Wheel installation and bundled-model inference were tested outside the source repository. Session tests cover duration limits, no overwrites, early stopping with partial audio, quiet windows, invalid backend scores, and report persistence. Physical microphone capture has not been exercised during automated validation.
+Installing from GitHub and running the bundled model were verified in a clean environment outside the source repository. Session tests cover duration limits, no overwrites, early stopping with partial audio, quiet windows, invalid backend scores, and report persistence. Menu tests cover selection handling, end of input, model choice, and the arguments each option runs. Physical microphone capture has not been exercised during automated validation.
 
 ## What was trained
 
@@ -151,8 +151,9 @@ Full evaluation, label order, preprocessing settings, source-data hash, and opti
 
 ## Code and retraining
 
+- `speech_emotion/`: the installed package and the only code shipped in the wheel. `cli.py` defines the `emotion-session` commands, `menu.py` the interactive menu, `sessions.py` the backend-independent analysis and reporting, and `models.py` the shared preprocessing and model loading.
 - `live_emotion.py`: bounded microphone buffer, quiet-window gating, and WAV replay.
-- `emotion_model.py`: shared preprocessing and model loading/prediction.
+- `emotion_model.py`: compatibility shim re-exporting `speech_emotion.models` for the original scripts.
 - `test_audio.py`: recording and whole-file testing.
 - `project/dependencies/multimodal_sentiment/construct_model.py`: single model definition.
 - `project/dependencies/multimodal_sentiment/train.py`: reproducible training/evaluation on the supplied CSV.
@@ -162,16 +163,18 @@ Full evaluation, label order, preprocessing settings, source-data hash, and opti
 
 To reproduce training without overwriting the shipped model:
 
-```powershell
-.\.venv\Scripts\python.exe project/dependencies/multimodal_sentiment/train.py --output work/retrained-model
+```sh
+python project/dependencies/multimodal_sentiment/train.py --output work/retrained-model
 ```
 
 The output must not already exist. Raw dataset archives were not used for this training run; the supplied prepared CSV was used directly. Text embeddings are not inputs to this audio-only model.
 
 ## Tests
 
-```powershell
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+From an activated environment:
+
+```sh
+python -m unittest discover -s tests -v
 ```
 
-Validation covers audio input, silence gating, group-disjoint splits, model loading with embedded normalization, and finite prediction scores. WAV replay is tested with real speech; a physical microphone recording was not performed during development.
+Validation covers audio input, silence gating, group-disjoint splits, model loading with embedded normalization, finite prediction scores, and the interactive menu. WAV replay is tested with real speech; a physical microphone recording was not performed during development.
